@@ -1,0 +1,79 @@
+import numpy as np
+import itertools
+import matplotlib.pyplot as plt
+import cv2
+import dlib
+import glob
+
+def feature_set(xlist,ylist,xmean,ymean):
+	list = []
+	for i in range(1,67):
+		x = xmean - xlist[i]
+		y = ymean - ylist[i]
+		if x == 0:
+			list.append(0.5)
+			continue
+		# f = '%f'%np.arctan(y/x)
+		f = np.arctan(y/x)
+		if f<0:
+			print f
+			f+=3.14159
+		list.append(f/3.14159)
+	return list
+
+detector = dlib.get_frontal_face_detector()
+PREDICTOR_PATH = "/Users/utkarshnath/Desktop/Ges_detect/shape_predictor_68_face_landmarks.dat"
+predictor = dlib.shape_predictor(PREDICTOR_PATH)
+
+
+emotions=["neutral","anger","contempt","disgust","fear","happy","sadness","surprise"]
+participants = glob.glob("dataset/*")
+
+#309,45,18,58,25,69,28,82
+myfile_training = open('training_data.txt','a')
+myfile_testing = open('testing_data.txt','a')
+myfile_training.truncate()
+myfile_testing.truncate()
+myfile = open("feature.txt",'a')
+myfile.truncate()
+
+
+val_output = -1
+for emotion in emotions:
+	val_output += 1
+	file = glob.glob("dataset/%s/*"%emotion)
+	for i,counter in itertools.izip(file, range(0,len(file))):	
+		xlist = []
+		ylist = []
+
+		img = cv2.imread(i)
+		gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+		detections = detector(gray,1)
+
+		for k,d in enumerate(detections):
+			shape = predictor(gray,d)
+			for j in range(1,68):
+				xlist.append(shape.part(j).x)
+				ylist.append(shape.part(j).y)
+		        #cv2.circle(img,(shape.part(j).x,shape.part(j).y),1,(0,0,255),thickness=2)
+
+		xlist = np.array(xlist)
+		ylist = np.array(ylist)
+		#print len(xlist)
+		xmean = np.mean(xlist)
+		# print xmean
+		ymean = np.mean(ylist)
+		xmean = float(xmean)
+		ymean = float(ymean)
+		if len(xlist)==67:
+			list = feature_set(xlist,ylist,xmean,ymean)
+			# list.append(str(val_output))
+			if counter<(len(file)*0.8):
+				myfile_training.write(" ".join(map(lambda x: str(x), list))+" "+str(val_output)+'\n')
+			else:
+				myfile_testing.write(" ".join(map(lambda x: str(x), list))+" "+str(val_output)+'\n')
+			myfile.write(" ".join(map(lambda x: str(x), list))+'\n')
+
+myfile_training.close()
+myfile_testing.close()
+myfile.close()
