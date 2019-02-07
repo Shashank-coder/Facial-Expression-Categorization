@@ -1,0 +1,27 @@
+import numpy as np
+from sklearn import linear_model
+trainging_total = np.loadtxt('training_data_svm.txt')
+testing_total = np.loadtxt('testing_data_svm.txt')
+#(0-629,0-66)
+
+# np.random.shuffle(x_total)
+
+#509 training data  80%
+#121 testing data   20%
+
+y_training = trainging_total[:,66]
+x_training = np.delete(trainging_total, 66, 1)
+
+# x_training = x_total[0::2]
+# y_training = y_total[0::2]
+y_testing = testing_total[:,66]
+x_testing = np.delete(testing_total, 66, 1)
+
+# arr = np.arange(100,300,1)
+# for i in arr:
+logreg = linear_model.LogisticRegression(C=1e3)
+logreg.fit(x_training,y_training)
+
+accuracy = logreg.score(x_testing, y_testing)
+
+print "Accuracy using Logistic Regression = %s  "%(accuracy)
