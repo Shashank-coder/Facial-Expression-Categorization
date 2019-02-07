@@ -1,0 +1,43 @@
+import numpy as np
+import pandas as pd
+from sklearn import svm
+import csv
+
+df = pd.read_csv('fer2013.csv')
+df.drop(['Usage'], 1, inplace=True)
+df_train = df[:28709]
+df_test = df[28709:]
+
+# print(df_train.head())
+
+rows = np.array(df['pixels'])
+features = []
+
+for row in rows:
+    row_pixels = row.split(' ')
+    features.append(row_pixels)
+
+# print len(features[0])
+
+total_features = len(features[0])
+df.drop(['pixels'], 1, inplace=True)
+header_array = ['emotion']
+
+for i in range(total_features):
+    header = 'pixel' + str(i)
+    header_array.append(header)
+    col = []
+    for j in range(len(features)):
+        col.append(features[j][i])
+    df[header] = col
+
+print(df.head())
+
+rows = np.array(df)
+
+with open('newformat.csv', 'wb') as f:
+    mywriter = csv.writer(f, delimiter=',')
+    mywriter.writerow(header_array)
+
+    for row in rows:
+        mywriter.writerow(row)
