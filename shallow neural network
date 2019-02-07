@@ -1,0 +1,35 @@
+import numpy as np
+from sknn.mlp import Classifier, Layer
+
+trainging_total = np.loadtxt('training_data_svm.txt')
+testing_total = np.loadtxt('testing_data_svm.txt')
+#(0-629,0-66)
+
+#509 training data  80%
+#121 testing data   20%
+
+y_training = trainging_total[:,66]
+x_training = np.delete(trainging_total, 66, 1)
+
+# x_training = x_total[0::2]
+# y_training = y_total[0::2]
+y_testing = testing_total[:,66]
+x_testing = np.delete(testing_total, 66, 1)
+
+#   Build the classifier
+nn = Classifier(
+    layers=[
+        Layer("Rectifier", units=500),
+        Layer("Rectifier", units=500),
+        Layer("Rectifier", units=500),
+        Layer("Softmax", name="OutputLayer", units=8)
+    ],
+    learning_rate=0.001,
+    n_iter=100
+)
+
+#   Fit the classifier with training data set
+nn.fit(x_training, y_training)
+
+accuracy = nn.score(x_testing, y_testing)
+print "Accuracy using Shallow NN = %s  "%(accuracy)
